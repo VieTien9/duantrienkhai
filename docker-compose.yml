@@ -31,7 +31,7 @@ services:
     container_name: hrm_webapp
     restart: always
     environment:
-      PORT: ${WEBAPP_PORT:-3000}
+      PORT: 3000
       DB_HOST: ${DB_HOST:-postgres_db}
       DB_PORT: ${DB_PORT:-5432}
       DB_NAME: ${DB_NAME:-hrm_db}
