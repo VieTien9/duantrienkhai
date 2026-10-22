@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hệ Thống Quản Lý Nhân Sự (HRM System) - Đề 10</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">HR</div>
+        <div class="brand-text">
+          <h2>HRM System</h2>
+          <span>Đề 10 - Quản Trị Hệ Thống</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#dashboard" class="nav-item active" data-tab="dashboard">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+          Tổng quan
+        </a>
+        <a href="#employees" class="nav-item" data-tab="employees">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+          Nhân viên
+        </a>
+        <a href="#departments" class="nav-item" data-tab="departments">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+          Phòng ban
+        </a>
+        <a href="#attendance" class="nav-item" data-tab="attendance">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          Chấm công
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status">
+          <span class="status-dot"></span>
+          <span>PostgreSQL: Connected</span>
+        </div>
+        <div class="system-links">
+          <a href="/metrics" target="_blank" class="link-tag">Prometheus /metrics</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="topbar">
+        <div class="topbar-title">
+          <h1 id="page-heading">Bảng Điều Khiển Tổng Quan</h1>
+          <p id="page-subheading">Hệ thống Quản lý Nhân sự Doanh nghiệp HRM</p>
+        </div>
+        <div class="topbar-actions">
+          <span id="current-time-badge" class="time-badge">--:--:--</span>
+        </div>
+      </header>
+
+      <div class="content-body">
+        <!-- TAB 1: DASHBOARD -->
+        <section id="tab-dashboard" class="tab-pane active">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon bg-blue">👥</div>
+              <div class="stat-info">
+                <span class="stat-label">Tổng nhân viên</span>
+                <h3 id="stat-total-employees" class="stat-value">0</h3>
+                <span class="stat-desc">Đang làm việc tại công ty</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon bg-purple">🏢</div>
+              <div class="stat-info">
+                <span class="stat-label">Phòng ban</span>
+                <h3 id="stat-total-departments" class="stat-value">0</h3>
+                <span class="stat-desc">Khối phòng ban vận hành</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon bg-emerald">⏱️</div>
+              <div class="stat-info">
+                <span class="stat-label">Chấm công hôm nay</span>
+                <h3 id="stat-today-attendance" class="stat-value">0</h3>
+                <span class="stat-desc">Lượt nhân sự đã check-in</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon bg-amber">✅</div>
+              <div class="stat-info">
+                <span class="stat-label">Đúng giờ</span>
+                <h3 id="stat-on-time-today" class="stat-value">0</h3>
+                <span class="stat-desc">Check-in trước 08:30</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="quick-checkin-card">
+            <h3>⚡ Điểm Danh Nhanh Trong Ngày</h3>
+            <div class="checkin-controls">
+              <select id="quick-employee-select" class="form-control">
+                <option value="">-- Chọn nhân viên để điểm danh --</option>
+              </select>
+              <input type="text" id="quick-checkin-notes" class="form-control" placeholder="Ghi chú (tùy chọn)">
+              <button id="btn-quick-checkin" class="btn btn-primary">Check-in Ngay</button>
+              <button id="btn-quick-checkout" class="btn btn-secondary">Check-out</button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <div class="table-header">
+              <h3>Bảng Điểm Danh Hôm Nay</h3>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Mã NV</th>
+                  <th>Họ Tên</th>
+                  <th>Phòng Ban</th>
+                  <th>Giờ Check-in</th>
+                  <th>Giờ Check-out</th>
+                  <th>Trạng Thái</th>
+                  <th>Ghi Chú</th>
+                </tr>
+              </thead>
+              <tbody id="today-attendance-tbody">
+                <tr><td colspan="7" class="text-center">Đang tải dữ liệu...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- TAB 2: EMPLOYEES -->
+        <section id="tab-employees" class="tab-pane">
+          <div class="section-toolbar">
+            <div class="search-filter">
+              <input type="text" id="employee-search" class="form-control" placeholder="🔍 Tìm kiếm theo tên, email, chức vụ...">
+              <select id="employee-dept-filter" class="form-control">
+                <option value="">-- Tất cả phòng ban --</option>
+              </select>
+            </div>
+            <button id="btn-open-employee-modal" class="btn btn-primary">+ Thêm Nhân Viên</button>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Họ Tên</th>
+                  <th>Email & SĐT</th>
+                  <th>Chức Vụ</th>
+                  <th>Phòng Ban</th>
+                  <th>Lương Cơ Bản</th>
+                  <th>Trạng Thái</th>
+                  <th>Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="employees-tbody">
+                <tr><td colspan="8" class="text-center">Đang tải dữ liệu nhân viên...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- TAB 3: DEPARTMENTS -->
+        <section id="tab-departments" class="tab-pane">
+          <div class="section-toolbar">
+            <h3>Danh Sách Các Phòng Ban</h3>
+            <button id="btn-open-dept-modal" class="btn btn-primary">+ Thêm Phòng Ban Mới</button>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Mã PB</th>
+                  <th>Tên Phòng Ban</th>
+                  <th>Mô Tả Nhiệm Vụ</th>
+                  <th>Số Lượng Nhân Sự</th>
+                  <th>Ngày Thành Lập</th>
+                </tr>
+              </thead>
+              <tbody id="departments-tbody">
+                <tr><td colspan="5" class="text-center">Đang tải danh sách phòng ban...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- TAB 4: ATTENDANCE -->
+        <section id="tab-attendance" class="tab-pane">
+          <div class="section-toolbar">
+            <div class="search-filter">
+              <label for="attendance-date-filter" style="align-self: center; font-weight: 500;">Chọn ngày:</label>
+              <input type="date" id="attendance-date-filter" class="form-control">
+              <button id="btn-load-attendance" class="btn btn-outline">Lọc Dữ Liệu</button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Mã Chấm Công</th>
+                  <th>Họ Tên Nhân Viên</th>
+                  <th>Chức Vụ</th>
+                  <th>Phòng Ban</th>
+                  <th>Ngày</th>
+                  <th>Giờ Vào</th>
+                  <th>Giờ Ra</th>
+                  <th>Trạng Thái</th>
+                  <th>Ghi Chú</th>
+                </tr>
+              </thead>
+              <tbody id="attendance-tbody">
+                <tr><td colspan="9" class="text-center">Đang tải dữ liệu chấm công...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: ADD / EDIT EMPLOYEE -->
+  <div id="employee-modal" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="employee-modal-title">Thêm Nhân Viên Mới</h3>
+        <button class="modal-close" id="btn-close-emp-modal">&times;</button>
+      </div>
+      <form id="employee-form">
+        <input type="hidden" id="emp-id">
+        <div class="form-group">
+          <label for="emp-name">Họ và Tên *</label>
+          <input type="text" id="emp-name" class="form-control" required placeholder="Ví dụ: Nguyễn Văn A">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="emp-email">Email Liên Hệ *</label>
+            <input type="email" id="emp-email" class="form-control" required placeholder="a.nguyen@hrm.local">
+          </div>
+          <div class="form-group">
+            <label for="emp-phone">Số Điện Thoại</label>
+            <input type="tel" id="emp-phone" class="form-control" placeholder="0901234567">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="emp-position">Chức Vụ / Vị Trí *</label>
+            <input type="text" id="emp-position" class="form-control" required placeholder="Kỹ sư phần mềm, Chuyên viên HR...">
+          </div>
+          <div class="form-group">
+            <label for="emp-department">Phòng Ban *</label>
+            <select id="emp-department" class="form-control" required>
+              <option value="">-- Chọn phòng ban --</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="emp-salary">Mức Lương (VNĐ)</label>
+            <input type="number" id="emp-salary" class="form-control" min="0" step="500000" placeholder="20000000">
+          </div>
+          <div class="form-group">
+            <label for="emp-status">Trạng Thái Làm Việc</label>
+            <select id="emp-status" class="form-control">
+              <option value="ACTIVE">Đang làm việc (ACTIVE)</option>
+              <option value="INACTIVE">Nghỉ việc (INACTIVE)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-emp">Hủy</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-emp">Lưu Thông Tin</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD DEPARTMENT -->
+  <div id="dept-modal" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Thêm Phòng Ban Mới</h3>
+        <button class="modal-close" id="btn-close-dept-modal">&times;</button>
+      </div>
+      <form id="dept-form">
+        <div class="form-group">
+          <label for="dept-name">Tên Phòng Ban *</label>
+          <input type="text" id="dept-name" class="form-control" required placeholder="Ví dụ: Phòng Nghiên Cứu & Phát Triển (R&D)">
+        </div>
+        <div class="form-group">
+          <label for="dept-desc">Mô Tả Chức Năng Nhiệm Vụ</label>
+          <textarea id="dept-desc" class="form-control" rows="3" placeholder="Mô tả chức năng hoạt động chính..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-dept">Hủy</button>
+          <button type="submit" class="btn btn-primary">Tạo Phòng Ban</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const { Pool } = require('pg');
+const client = require('prom-client');
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Prometheus Metrics Setup
+const register = new client.Registry();
+client.collectDefaultMetrics({ register, prefix: 'hrm_' });
+
+const httpRequestsTotal = new client.Counter({
+  name: 'hrm_http_requests_total',
+  help: 'Total number of HTTP requests processed',
+  labelNames: ['method', 'route', 'status_code'],
+});
+register.registerMetric(httpRequestsTotal);
+
+const httpRequestDurationSeconds = new client.Histogram({
+  name: 'hrm_http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'status_code'],
+  buckets: [0.01, 0.05, 0.1, 0.3, 0.5, 1, 2, 5],
+});
+register.registerMetric(httpRequestDurationSeconds);
+
+const employeesTotalGauge = new client.Gauge({
+  name: 'hrm_employees_total',
+  help: 'Current total number of active employees',
+});
+register.registerMetric(employeesTotalGauge);
+
+const attendanceTodayGauge = new client.Gauge({
+  name: 'hrm_attendance_today_total',
+  help: 'Total attendance records for today',
+});
+register.registerMetric(attendanceTodayGauge);
+
+// Middleware for request metrics
+app.use((req, res, next) => {
+  const start = process.hrtime();
+  res.on('finish', () => {
+    const diff = process.hrtime(start);
+    const duration = diff[0] + diff[1] / 1e9;
+    const route = req.route ? req.route.path : req.path;
+    httpRequestsTotal.inc({ method: req.method, route, status_code: res.statusCode });
+    httpRequestDurationSeconds.observe({ method: req.method, route, status_code: res.statusCode }, duration);
+  });
+  next();
+});
+
+// Database Connection
+const pool = new Pool({
+  host: process.env.DB_HOST || 'postgres_db',
+  port: parseInt(process.env.DB_PORT || '5432', 10),
+  user: process.env.DB_USER || 'hrm_user',
+  password: process.env.DB_PASSWORD || 'hrm_secure_pass123',
+  database: process.env.DB_NAME || 'hrm_db',
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+});
+
+// Helper: Query with retry
+async function query(text, params) {
+  return pool.query(text, params);
+}
+
+// Update Gauges periodically
+async function updateMetricsGauges() {
+  try {
+    const empRes = await pool.query("SELECT COUNT(*) AS count FROM employees WHERE status = 'ACTIVE'");
+    employeesTotalGauge.set(parseInt(empRes.rows[0].count, 10));
+
+    const attRes = await pool.query("SELECT COUNT(*) AS count FROM attendance WHERE attendance_date = CURRENT_DATE");
+    attendanceTodayGauge.set(parseInt(attRes.rows[0].count, 10));
+  } catch (err) {
+    // Ignore error when DB is initializing
+  }
+}
+setInterval(updateMetricsGauges, 15000);
+
+// --- Prometheus Metrics Endpoint ---
+app.get('/metrics', async (req, res) => {
+  try {
+    await updateMetricsGauges();
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  } catch (err) {
+    res.status(500).end(err.message);
+  }
+});
+
+// --- Health Check ---
+app.get('/health', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ status: 'UP', database: 'CONNECTED', timestamp: new Date().toISOString() });
+  } catch (err) {
+    res.status(503).json({ status: 'DOWN', database: 'DISCONNECTED', error: err.message });
+  }
+});
+
+// --- API Endpoints ---
+
+// 1. Dashboard summary stats
+app.get('/api/dashboard', async (req, res) => {
+  try {
+    const totalEmployees = await query("SELECT COUNT(*) FROM employees WHERE status = 'ACTIVE'");
+    const totalDepartments = await query("SELECT COUNT(*) FROM departments");
+    const todayAttendance = await query("SELECT COUNT(*) FROM attendance WHERE attendance_date = CURRENT_DATE");
+    const onTimeToday = await query("SELECT COUNT(*) FROM attendance WHERE attendance_date = CURRENT_DATE AND status = 'PRESENT'");
+
+    res.json({
+      success: true,
+      data: {
+        totalEmployees: parseInt(totalEmployees.rows[0].count, 10),
+        totalDepartments: parseInt(totalDepartments.rows[0].count, 10),
+        todayAttendance: parseInt(todayAttendance.rows[0].count, 10),
+        onTimeToday: parseInt(onTimeToday.rows[0].count, 10),
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching dashboard stats:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 2. Departments API
+app.get('/api/departments', async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT d.*, COUNT(e.id) AS employee_count
+      FROM departments d
+      LEFT JOIN employees e ON d.id = e.department_id AND e.status = 'ACTIVE'
+      GROUP BY d.id
+      ORDER BY d.id ASC
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/departments', async (req, res) => {
+  const { name, description } = req.body;
+  if (!name) return res.status(400).json({ success: false, message: 'Tên phòng ban là bắt buộc' });
+  try {
+    const result = await query(
+      'INSERT INTO departments (name, description) VALUES ($1, $2) RETURNING *',
+      [name, description || null]
+    );
+    res.status(201).json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 3. Employees API
+app.get('/api/employees', async (req, res) => {
+  const { search, department_id, status } = req.query;
+  try {
+    let sql = `
+      SELECT e.*, d.name AS department_name
+      FROM employees e
+      LEFT JOIN departments d ON e.department_id = d.id
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (search) {
+      params.push(`%${search}%`);
+      sql += ` AND (e.full_name ILIKE $${params.length} OR e.email ILIKE $${params.length} OR e.position ILIKE $${params.length})`;
+    }
+    if (department_id) {
+      params.push(department_id);
+      sql += ` AND e.department_id = $${params.length}`;
+    }
+    if (status) {
+      params.push(status);
+      sql += ` AND e.status = $${params.length}`;
+    }
+
+    sql += ' ORDER BY e.id DESC';
+    const result = await query(sql, params);
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/employees', async (req, res) => {
+  const { full_name, email, phone, position, salary, department_id, hire_date } = req.body;
+  if (!full_name || !email || !position) {
+    return res.status(400).json({ success: false, message: 'Vui lòng điền đủ họ tên, email và vị trí' });
+  }
+  try {
+    const result = await query(
+      `INSERT INTO employees (full_name, email, phone, position, salary, department_id, hire_date, status)
+       VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7::date, CURRENT_DATE), 'ACTIVE')
+       RETURNING *`,
+      [full_name, email, phone || null, position, salary || 0, department_id || null, hire_date || null]
+    );
+    res.status(201).json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/api/employees/:id', async (req, res) => {
+  const { id } = req.params;
+  const { full_name, email, phone, position, salary, department_id, status } = req.body;
+  try {
+    const result = await query(
+      `UPDATE employees
+       SET full_name = COALESCE($1, full_name),
+           email = COALESCE($2, email),
+           phone = COALESCE($3, phone),
+           position = COALESCE($4, position),
+           salary = COALESCE($5, salary),
+           department_id = COALESCE($6, department_id),
+           status = COALESCE($7, status)
+       WHERE id = $8
+       RETURNING *`,
+      [full_name, email, phone, position, salary, department_id, status, id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ success: false, message: 'Không tìm thấy nhân viên' });
+    res.json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/employees/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await query('DELETE FROM employees WHERE id = $1 RETURNING id', [id]);
+    if (result.rows.length === 0) return res.status(404).json({ success: false, message: 'Không tìm thấy nhân viên' });
+    res.json({ success: true, message: 'Đã xóa nhân viên thành công' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4. Attendance API
+app.get('/api/attendance', async (req, res) => {
+  const { date } = req.query;
+  try {
+    let sql = `
+      SELECT a.*, e.full_name, e.position, d.name AS department_name
+      FROM attendance a
+      JOIN employees e ON a.employee_id = e.id
+      LEFT JOIN departments d ON e.department_id = d.id
+    `;
+    const params = [];
+    if (date) {
+      params.push(date);
+      sql += ` WHERE a.attendance_date = $1`;
+    } else {
+      sql += ` WHERE a.attendance_date = CURRENT_DATE`;
+    }
+    sql += ' ORDER BY a.created_at DESC';
+    const result = await query(sql, params);
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/attendance/checkin', async (req, res) => {
+  const { employee_id, notes } = req.body;
+  if (!employee_id) return res.status(400).json({ success: false, message: 'Thiếu mã nhân viên' });
+  try {
+    const now = new Date();
+    const currentTime = now.toTimeString().split(' ')[0]; // HH:MM:SS
+    const isLate = now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() > 30);
+    const status = isLate ? 'LATE' : 'PRESENT';
+
+    const result = await query(
+      `INSERT INTO attendance (employee_id, attendance_date, check_in, status, notes)
+       VALUES ($1, CURRENT_DATE, $2, $3, $4)
+       ON CONFLICT (employee_id, attendance_date)
+       DO UPDATE SET check_in = EXCLUDED.check_in, status = EXCLUDED.status, notes = EXCLUDED.notes
+       RETURNING *`,
+      [employee_id, currentTime, status, notes || (isLate ? 'Đi trễ sau 08:30' : 'Đúng giờ')]
+    );
+    res.json({ success: true, message: 'Điểm danh Check-in thành công', data: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/attendance/checkout', async (req, res) => {
+  const { employee_id } = req.body;
+  if (!employee_id) return res.status(400).json({ success: false, message: 'Thiếu mã nhân viên' });
+  try {
+    const currentTime = new Date().toTimeString().split(' ')[0];
+    const result = await query(
+      `UPDATE attendance
+       SET check_out = $1
+       WHERE employee_id = $2 AND attendance_date = CURRENT_DATE
+       RETURNING *`,
+      [currentTime, employee_id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(400).json({ success: false, message: 'Nhân viên chưa Check-in ngày hôm nay' });
+    }
+    res.json({ success: true, message: 'Check-out hoàn tất', data: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Start Server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`[HRM System] Server running on http://0.0.0.0:${PORT}`);
+  console.log(`[HRM System] Metrics available at http://0.0.0.0:${PORT}/metrics`);
+});
