@@ -107,15 +107,21 @@ hrm-system/
 ## 4. HƯỚNG DẪN TRIỂN KHAI & KHỞI CHẠY
 
 ### Bước 4.1: Cấu hình phân giải tên miền nội bộ (`/etc/hosts`)
-Để truy cập dịch vụ qua tên miền `hrm.local` và `pgadmin.hrm.local`, thêm bản ghi sau vào file `/etc/hosts` (hoặc `C:\Windows\System32\drivers\etc\hosts` trên Windows):
-
-```bash
-# Mở file hosts với quyền sudo (Linux/macOS)
-sudo nano /etc/hosts
-
-# Thêm dòng sau:
-127.0.0.1 hrm.local pgadmin.hrm.local
-```
+Để truy cập dịch vụ qua tên miền `hrm.local` và `pgadmin.hrm.local`:
+- **Nếu chạy và truy cập trực tiếp trên chính máy này (Localhost):**
+  Thêm bản ghi vào file `/etc/hosts` (hoặc `C:\Windows\System32\drivers\etc\hosts` trên Windows):
+  ```bash
+  sudo nano /etc/hosts
+  # Thêm dòng:
+  127.0.0.1 hrm.local pgadmin.hrm.local
+  ```
+- **Nếu truy cập từ máy khác trong mạng LAN tới máy này (IP: `192.168.1.45`):**
+  Trên máy khách (Laptop, điện thoại hoặc máy khác cùng mạng WiFi/LAN), bạn có thể:
+  1. Truy cập trực tiếp qua IP máy thật: **`http://192.168.1.45`**
+  2. Hoặc cấu hình file `hosts` của máy khách:
+     ```text
+     192.168.1.45 hrm.local pgadmin.hrm.local
+     ```
 
 ### Bước 4.2: Chuẩn bị tệp biến môi trường
 File `.env` đã được chuẩn bị sẵn trong thư mục. Quý vị có thể xem hoặc tùy chỉnh nếu muốn:
@@ -154,18 +160,20 @@ docker-compose down
 
 ## 5. DANH SÁCH DỊCH VỤ, CỔNG & TÀI KHOẢN MẪU
 
-| Dịch Vụ | Container Name | Cổng Truy Cập (Port) | Địa Chỉ Truy Cập (URL) | Tài Khoản Đăng Nhập |
-|:---|:---|:---:|:---|:---|
-| **HRM Web App (Qua Nginx)** | `hrm_nginx` | **80** | [http://hrm.local](http://hrm.local) hoặc [http://localhost](http://localhost) | Không cần login (truy cập trực tiếp) |
-| **HRM Web App (Gốc)** | `hrm_webapp` | **3000** | [http://localhost:3000](http://localhost:3000) | Gốc Node.js nội bộ |
-| **Prometheus Metrics** | `hrm_webapp` | **3000 / 80** | [http://hrm.local/metrics](http://hrm.local/metrics) | Công khai cho Scraper |
-| **pgAdmin 4 (Qua Nginx)** | `hrm_nginx` | **80** | [http://hrm.local/pgadmin/](http://hrm.local/pgadmin/) | **User:** `admin@hrm.local`<br>**Pass:** `Admin@HRM2026!` |
-| **pgAdmin 4 (Trực tiếp)** | `hrm_pgadmin` | **5050** | [http://localhost:5050](http://localhost:5050) | **User:** `admin@hrm.local`<br>**Pass:** `Admin@HRM2026!` |
-| **Prometheus Server** | `hrm_prometheus` | **9090** | [http://localhost:9090](http://localhost:9090) | Không yêu cầu |
-| **Grafana Dashboard** | `hrm_grafana` | **3001** | [http://localhost:3001](http://localhost:3001) | **User:** `admin`<br>**Pass:** `Admin@Grafana2026!` |
-| **cAdvisor** | `hrm_cadvisor` | **8080** | [http://localhost:8080](http://localhost:8080) | Không yêu cầu |
-| **Loki Log Engine** | `hrm_loki` | **3100** | [http://localhost:3100](http://localhost:3100) | REST API |
-| **PostgreSQL Database** | `hrm_postgres_db` | **5432 (Nội bộ)** | Kết nối nội bộ qua `backend_net` | **DB:** `hrm_db`<br>**User:** `hrm_user`<br>**Pass:** `hrm_secure_password_2026` |
+> 💡 **Địa chỉ IP máy thật hiện tại của bạn:** `192.168.1.45`
+
+| Dịch Vụ | Container Name | Cổng (Port) | URL (Domain / Localhost) | URL Máy Thật (LAN IP: `192.168.1.45`) | Tài Khoản Đăng Nhập |
+|:---|:---|:---:|:---|:---|:---|
+| **HRM Web App (Qua Nginx)** | `hrm_nginx` | **80** | [http://hrm.local](http://hrm.local) hoặc [http://localhost](http://localhost) | [http://192.168.1.45](http://192.168.1.45) | Không cần login (truy cập trực tiếp) |
+| **HRM Web App (Gốc)** | `hrm_webapp` | **3000** | [http://localhost:3000](http://localhost:3000) | [http://192.168.1.45:3000](http://192.168.1.45:3000) | Gốc Node.js nội bộ |
+| **Prometheus Metrics** | `hrm_webapp` | **3000 / 80** | [http://hrm.local/metrics](http://hrm.local/metrics) | [http://192.168.1.45/metrics](http://192.168.1.45/metrics) | Công khai cho Scraper |
+| **pgAdmin 4 (Qua Nginx)** | `hrm_nginx` | **80** | [http://hrm.local/pgadmin/](http://hrm.local/pgadmin/) | [http://192.168.1.45/pgadmin/](http://192.168.1.45/pgadmin/) | **User:** `admin@hrm.local`<br>**Pass:** `Admin@HRM2026!` |
+| **pgAdmin 4 (Trực tiếp)** | `hrm_pgadmin` | **5050** | [http://localhost:5050](http://localhost:5050) | [http://192.168.1.45:5050](http://192.168.1.45:5050) | **User:** `admin@hrm.local`<br>**Pass:** `Admin@HRM2026!` |
+| **Prometheus Server** | `hrm_prometheus` | **9090** | [http://localhost:9090](http://localhost:9090) | [http://192.168.1.45:9090](http://192.168.1.45:9090) | Không yêu cầu |
+| **Grafana Dashboard** | `hrm_grafana` | **3001** | [http://localhost:3001](http://localhost:3001) | [http://192.168.1.45:3001](http://192.168.1.45:3001) | **User:** `admin`<br>**Pass:** `Admin@Grafana2026!` |
+| **cAdvisor** | `hrm_cadvisor` | **8080** | [http://localhost:8080](http://localhost:8080) | [http://192.168.1.45:8080](http://192.168.1.45:8080) | Không yêu cầu |
+| **Loki Log Engine** | `hrm_loki` | **3100** | [http://localhost:3100](http://localhost:3100) | [http://192.168.1.45:3100](http://192.168.1.45:3100) | REST API |
+| **PostgreSQL Database** | `hrm_postgres_db` | **5432 (Nội bộ)** | Kết nối nội bộ qua `backend_net` | Chỉ mở trong `backend_net` | **DB:** `hrm_db`<br>**User:** `hrm_user`<br>**Pass:** `hrm_secure_password_2026` |
 
 ---
 
