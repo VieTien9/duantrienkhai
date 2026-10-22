@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+
+scrape_configs:
+  # 1. Prometheus Self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # 2. HRM Web Application Metrics
+  - job_name: 'hrm-webapp'
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['webapp:3000']
+        labels:
+          app: 'hrm-system'
+          environment: 'production'
+
+  # 3. cAdvisor (Container Resource Metrics)
+  - job_name: 'cadvisor'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          system: 'docker-infrastructure'
