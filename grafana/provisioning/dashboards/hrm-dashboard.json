@@ -65,8 +65,8 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
           "expr": "hrm_employees_total",
-          "instant": false,
-          "range": true,
+          "instant": true,
+          "range": false,
           "refId": "A"
         }
       ],
@@ -110,8 +110,8 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
           "expr": "hrm_attendance_today_total",
-          "instant": false,
-          "range": true,
+          "instant": true,
+          "range": false,
           "refId": "A"
         }
       ],
@@ -154,8 +154,8 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
           "expr": "sum(hrm_http_requests_total)",
-          "instant": false,
-          "range": true,
+          "instant": true,
+          "range": false,
           "refId": "A"
         }
       ],
@@ -206,8 +206,8 @@
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
           "expr": "up{job=\"hrm-webapp\"}",
-          "instant": false,
-          "range": true,
+          "instant": true,
+          "range": false,
           "refId": "A"
         }
       ],
@@ -247,7 +247,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum(rate(hrm_http_requests_total[1m])) by (route, status_code)",
+          "expr": "sum(rate(hrm_http_requests_total[2m])) by (route, status_code)",
           "legendFormat": "{{route}} [{{status_code}}]",
           "refId": "A"
         }
@@ -279,7 +279,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(hrm_http_request_duration_seconds_bucket[1m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(hrm_http_request_duration_seconds_bucket[2m])) by (le))",
           "legendFormat": "P95 Latency",
           "refId": "A"
         }
@@ -318,7 +318,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum(rate(container_cpu_usage_seconds_total{name=~\"hrm_.*\"}[1m])) by (name) * 100",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{name=~\"hrm_.*\"}[2m])) by (name) * 100",
           "legendFormat": "{{name}}",
           "refId": "A"
         }
@@ -382,7 +382,7 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "editorMode": "code",
-          "expr": "{container=~\"hrm_webapp|hrm_nginx|hrm_mysql_db|hrm_phpmyadmin\"}",
+          "expr": "{container=~\"hrm_webapp|hrm_nginx|hrm_postgres_db|hrm_pgadmin\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -393,10 +393,10 @@
   "schemaVersion": 39,
   "tags": ["hrm", "devops", "monitoring"],
   "templating": { "list": [] },
-  "time": { "from": "now-15m", "to": "now" },
+  "time": { "from": "now-2d", "to": "now+1d" },
   "timepicker": {},
   "timezone": "browser",
   "title": "Hệ Thống Quản Lý Nhân Sự (HRM) - Đề 10",
   "uid": "hrm-system-overview",
-  "version": 1
+  "version": 2
 }

@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "HRM PostgreSQL Server",
+      "Group": "Servers",
+      "Port": 5432,
+      "Username": "hrm_user",
+      "Host": "postgres_db",
+      "SSLMode": "prefer",
+      "MaintenanceDB": "hrm_db"
+    }
+  }
+}
