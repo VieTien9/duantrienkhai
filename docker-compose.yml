@@ -59,6 +59,7 @@ services:
       PMA_HOST: mysql_db
       PMA_PORT: 3306
       PMA_ARBITRARY: 0
+      PMA_ABSOLUTE_URI: /phpmyadmin/
       UPLOAD_LIMIT: 64M
     ports:
       - "${PMA_PORT:-5052}:80"
