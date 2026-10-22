@@ -1,28 +1,30 @@
 services:
   # -------------------------------------------------------------
-  # 1. DATABASE: PostgreSQL (Chỉ thuộc backend_net - Network Isolation)
+  # 1. DATABASE: MySQL (Chỉ thuộc backend_net - Network Isolation)
   # -------------------------------------------------------------
-  postgres_db:
-    image: postgres:16-alpine
-    container_name: hrm_postgres_db
+  mysql_db:
+    image: mysql:8.0
+    container_name: hrm_mysql_db
     restart: always
     environment:
-      POSTGRES_DB: ${DB_NAME:-hrm_db}
-      POSTGRES_USER: ${DB_USER:-hrm_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-hrm_secure_password_2026}
+      MYSQL_DATABASE: ${DB_NAME:-hrm_db}
+      MYSQL_USER: ${DB_USER:-hrm_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-hrm_secure_password_2026}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-hrm_root_password_2026}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-hrm_user} -d ${DB_NAME:-hrm_db}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER:-hrm_user}", "-p${DB_PASSWORD:-hrm_secure_password_2026}"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 15s
     networks:
       - backend_net
 
   # -------------------------------------------------------------
-  # 2. WEB APPLICATION: Node.js / Express HRM
+  # 2. WEB APPLICATION: Node.js / Express HRM (MySQL)
   # -------------------------------------------------------------
   webapp:
     build:
@@ -32,58 +34,56 @@ services:
     restart: always
     environment:
       PORT: 3000
-      DB_HOST: ${DB_HOST:-postgres_db}
-      DB_PORT: ${DB_PORT:-5432}
+      DB_HOST: ${DB_HOST:-mysql_db}
+      DB_PORT: ${DB_PORT:-3306}
       DB_NAME: ${DB_NAME:-hrm_db}
       DB_USER: ${DB_USER:-hrm_user}
       DB_PASSWORD: ${DB_PASSWORD:-hrm_secure_password_2026}
     ports:
-      - "${WEBAPP_PORT:-3000}:3000"
+      - "${WEBAPP_PORT:-3002}:3000"
     depends_on:
-      postgres_db:
+      mysql_db:
         condition: service_healthy
     networks:
       - frontend_net
       - backend_net
 
   # -------------------------------------------------------------
-  # 3. DATABASE MANAGEMENT: pgAdmin 4
+  # 3. DATABASE MANAGEMENT: phpMyAdmin
   # -------------------------------------------------------------
-  pgadmin:
-    image: dpage/pgadmin4:8.5
-    container_name: hrm_pgadmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5.2.1
+    container_name: hrm_phpmyadmin
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@hrm.local}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-Admin@HRM2026!}
-      PGADMIN_CONFIG_SERVER_MODE: 'True'
-      PGADMIN_LISTEN_PORT: 80
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
+      PMA_HOST: mysql_db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 0
+      UPLOAD_LIMIT: 64M
     ports:
-      - "${PGADMIN_PORT:-5050}:80"
+      - "${PMA_PORT:-5052}:80"
     depends_on:
-      postgres_db:
+      mysql_db:
         condition: service_healthy
     networks:
       - frontend_net
       - backend_net
 
   # -------------------------------------------------------------
-  # 4. REVERSE PROXY: Nginx (Cổng vào chính hrm.local)
+  # 4. REVERSE PROXY: Nginx (Cổng vào chính hrm.local:8000)
   # -------------------------------------------------------------
   nginx:
     image: nginx:1.27-alpine
     container_name: hrm_nginx
     restart: always
     ports:
-      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTP_PORT:-8000}:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
     depends_on:
       - webapp
-      - pgadmin
+      - phpmyadmin
     networks:
       - frontend_net
 
@@ -104,7 +104,7 @@ services:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     ports:
-      - "${PROMETHEUS_PORT:-9090}:9090"
+      - "${PROMETHEUS_PORT:-9091}:9090"
     depends_on:
       - webapp
       - cadvisor
@@ -128,7 +128,7 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
     ports:
-      - "${CADVISOR_PORT:-8080}:8080"
+      - "${CADVISOR_PORT:-8085}:8080"
     networks:
       - frontend_net
 
@@ -202,10 +202,8 @@ networks:
 # VOLUMES CONFIGURATION (Persistent Storage)
 # -------------------------------------------------------------
 volumes:
-  postgres_data:
-    name: hrm_postgres_data
-  pgadmin_data:
-    name: hrm_pgadmin_data
+  mysql_data:
+    name: hrm_mysql_data
   prometheus_data:
     name: hrm_prometheus_data
   grafana_data:
