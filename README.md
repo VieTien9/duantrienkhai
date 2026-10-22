@@ -164,14 +164,14 @@ docker-compose down
 
 | Dịch Vụ | Container Name | Cổng (Port) | URL (Domain / Localhost) | URL Máy Thật (LAN IP: `192.168.1.45`) | Tài Khoản Đăng Nhập |
 |:---|:---|:---:|:---|:---|:---|
-| **HRM Web App (Qua Nginx)** | `hrm_nginx` | **80** | [http://hrm.local](http://hrm.local) hoặc [http://localhost](http://localhost) | [http://192.168.1.45](http://192.168.1.45) | Không cần login (truy cập trực tiếp) |
-| **HRM Web App (Gốc)** | `hrm_webapp` | **3000** | [http://localhost:3000](http://localhost:3000) | [http://192.168.1.45:3000](http://192.168.1.45:3000) | Gốc Node.js nội bộ |
-| **Prometheus Metrics** | `hrm_webapp` | **3000 / 80** | [http://hrm.local/metrics](http://hrm.local/metrics) | [http://192.168.1.45/metrics](http://192.168.1.45/metrics) | Công khai cho Scraper |
-| **pgAdmin 4 (Qua Nginx)** | `hrm_nginx` | **80** | [http://hrm.local/pgadmin/](http://hrm.local/pgadmin/) | [http://192.168.1.45/pgadmin/](http://192.168.1.45/pgadmin/) | **User:** `admin@hrm.local`<br>**Pass:** `Admin@HRM2026!` |
-| **pgAdmin 4 (Trực tiếp)** | `hrm_pgadmin` | **5050** | [http://localhost:5050](http://localhost:5050) | [http://192.168.1.45:5050](http://192.168.1.45:5050) | **User:** `admin@hrm.local`<br>**Pass:** `Admin@HRM2026!` |
-| **Prometheus Server** | `hrm_prometheus` | **9090** | [http://localhost:9090](http://localhost:9090) | [http://192.168.1.45:9090](http://192.168.1.45:9090) | Không yêu cầu |
+| **HRM Web App (Qua Nginx)** | `hrm_nginx` | **8000** | [http://hrm.local:8000](http://hrm.local:8000) hoặc [http://localhost:8000](http://localhost:8000) | [http://192.168.1.45:8000](http://192.168.1.45:8000) | Không cần login (truy cập trực tiếp) |
+| **HRM Web App (Gốc)** | `hrm_webapp` | **3002** | [http://localhost:3002](http://localhost:3002) | [http://192.168.1.45:3002](http://192.168.1.45:3002) | Gốc Node.js nội bộ |
+| **Prometheus Metrics** | `hrm_webapp` | **8000** | [http://hrm.local:8000/metrics](http://hrm.local:8000/metrics) | [http://192.168.1.45:8000/metrics](http://192.168.1.45:8000/metrics) | Công khai cho Scraper |
+| **pgAdmin 4 (Qua Nginx)** | `hrm_nginx` | **8000** | [http://hrm.local:8000/pgadmin/](http://hrm.local:8000/pgadmin/) | [http://192.168.1.45:8000/pgadmin/](http://192.168.1.45:8000/pgadmin/) | **User:** `admin@hrm.local`<br>**Pass:** `Admin@HRM2026!` |
+| **pgAdmin 4 (Trực tiếp)** | `hrm_pgadmin` | **5051** | [http://localhost:5051](http://localhost:5051) | [http://192.168.1.45:5051](http://192.168.1.45:5051) | **User:** `admin@hrm.local`<br>**Pass:** `Admin@HRM2026!` |
+| **Prometheus Server** | `hrm_prometheus` | **9091** | [http://localhost:9091](http://localhost:9091) | [http://192.168.1.45:9091](http://192.168.1.45:9091) | Không yêu cầu |
 | **Grafana Dashboard** | `hrm_grafana` | **3001** | [http://localhost:3001](http://localhost:3001) | [http://192.168.1.45:3001](http://192.168.1.45:3001) | **User:** `admin`<br>**Pass:** `Admin@Grafana2026!` |
-| **cAdvisor** | `hrm_cadvisor` | **8080** | [http://localhost:8080](http://localhost:8080) | [http://192.168.1.45:8080](http://192.168.1.45:8080) | Không yêu cầu |
+| **cAdvisor** | `hrm_cadvisor` | **8085** | [http://localhost:8085](http://localhost:8085) | [http://192.168.1.45:8085](http://192.168.1.45:8085) | Không yêu cầu |
 | **Loki Log Engine** | `hrm_loki` | **3100** | [http://localhost:3100](http://localhost:3100) | [http://192.168.1.45:3100](http://192.168.1.45:3100) | REST API |
 | **PostgreSQL Database** | `hrm_postgres_db` | **5432 (Nội bộ)** | Kết nối nội bộ qua `backend_net` | Chỉ mở trong `backend_net` | **DB:** `hrm_db`<br>**User:** `hrm_user`<br>**Pass:** `hrm_secure_password_2026` |
 
@@ -179,7 +179,7 @@ docker-compose down
 
 ## 6. HƯỚNG DẪN SỬ DỤNG PGADMIN KẾT NỐI DATABASE
 
-1. Mở trình duyệt và truy cập: [http://hrm.local/pgadmin/](http://hrm.local/pgadmin/) (hoặc [http://localhost:5050](http://localhost:5050)).
+1. Mở trình duyệt và truy cập: [http://192.168.1.45:8000/pgadmin/](http://192.168.1.45:8000/pgadmin/) (hoặc [http://192.168.1.45:5051](http://192.168.1.45:5051)).
 2. Đăng nhập với:
    - **Email:** `admin@hrm.local`
    - **Password:** `Admin@HRM2026!`
