@@ -45,7 +45,7 @@ const attendanceTodayGauge = new client.Gauge({
 });
 register.registerMetric(attendanceTodayGauge);
 
-// Middleware for request metrics
+// Middleware for request metrics and logging
 app.use((req, res, next) => {
   const start = process.hrtime();
   res.on('finish', () => {
@@ -54,6 +54,9 @@ app.use((req, res, next) => {
     const route = req.route ? req.route.path : req.path;
     httpRequestsTotal.inc({ method: req.method, route, status_code: res.statusCode });
     httpRequestDurationSeconds.observe({ method: req.method, route, status_code: res.statusCode }, duration);
+    if (!req.url.startsWith('/metrics')) {
+      console.log(`[HTTP] ${req.method} ${req.url} - Status: ${res.statusCode} (${(duration * 1000).toFixed(1)}ms)`);
+    }
   });
   next();
 });
@@ -210,8 +213,10 @@ app.post('/api/employees', async (req, res) => {
        RETURNING *`,
       [full_name, email, phone || null, position, salary || 0, department_id || null, hire_date || null]
     );
+    console.log(`[HRM_AUDIT] THÊM MỚI NHÂN VIÊN: ID=${result.rows[0].id}, Họ tên="${full_name}", Chức vụ="${position}"`);
     res.status(201).json({ success: true, data: result.rows[0] });
   } catch (err) {
+    console.error(`[HRM_AUDIT] THÊM MỚI NHÂN VIÊN THẤT BẠI:`, err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -234,8 +239,10 @@ app.put('/api/employees/:id', async (req, res) => {
       [full_name, email, phone, position, salary, department_id, status, id]
     );
     if (result.rows.length === 0) return res.status(404).json({ success: false, message: 'Không tìm thấy nhân viên' });
+    console.log(`[HRM_AUDIT] CẬP NHẬT NHÂN VIÊN: ID=${id}, Họ tên="${full_name}"`);
     res.json({ success: true, data: result.rows[0] });
   } catch (err) {
+    console.error(`[HRM_AUDIT] CẬP NHẬT NHÂN VIÊN THẤT BẠI: ID=${id}, Lỗi=${err.message}`);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -243,10 +250,16 @@ app.put('/api/employees/:id', async (req, res) => {
 app.delete('/api/employees/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await query('DELETE FROM employees WHERE id = $1 RETURNING id', [id]);
-    if (result.rows.length === 0) return res.status(404).json({ success: false, message: 'Không tìm thấy nhân viên' });
+    const result = await query('DELETE FROM employees WHERE id = $1 RETURNING id, full_name', [id]);
+    if (result.rows.length === 0) {
+      console.warn(`[HRM_AUDIT] XÓA NHÂN VIÊN THẤT BẠI: Không tìm thấy ID=${id}`);
+      return res.status(404).json({ success: false, message: 'Không tìm thấy nhân viên' });
+    }
+    const deletedName = result.rows[0].full_name || `ID ${id}`;
+    console.log(`[HRM_AUDIT] ĐÃ XÓA NHÂN VIÊN: ID=${id}, Họ tên="${deletedName}"`);
     res.json({ success: true, message: 'Đã xóa nhân viên thành công' });
   } catch (err) {
+    console.error(`[HRM_AUDIT] XÓA NHÂN VIÊN LỖI: ID=${id}, Lỗi=${err.message}`);
     res.status(500).json({ success: false, error: err.message });
   }
 });

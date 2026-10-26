@@ -136,26 +136,26 @@ docker compose down
 
 ## 5. DANH SÁCH DỊCH VỤ, CỔNG & TÀI KHOẢN MẪU
 
-> 💡 **Địa chỉ IP máy thật của bạn:** `192.168.1.45`
+> 💡 **Địa chỉ IP máy ảo hiện tại của bạn:** `172.172.6.227` (Lệnh kiểm tra: `hostname -I`)
 
-| Dịch Vụ | Container Name | Cổng (Port) | URL (Domain / Localhost) | URL Máy Thật (LAN IP: `192.168.1.45`) | Tài Khoản Đăng Nhập |
+| Dịch Vụ | Container Name | Cổng (Port) | URL Máy Ảo (Localhost) | URL Truy Cập Từ Máy Thật (LAN IP: `172.172.6.227`) | Tài Khoản Đăng Nhập |
 |:---|:---|:---:|:---|:---|:---|
-| **HRM Web App (Qua Nginx)** | `hrm_nginx` | **8000** | [http://hrm.local:8000](http://hrm.local:8000) hoặc [http://localhost:8000](http://localhost:8000) | [http://192.168.1.45:8000](http://192.168.1.45:8000) | Không cần login (truy cập trực tiếp) |
-| **HRM Web App (Gốc)** | `hrm_webapp` | **3002** | [http://localhost:3002](http://localhost:3002) | [http://192.168.1.45:3002](http://192.168.1.45:3002) | Gốc Node.js nội bộ |
-| **Prometheus Metrics** | `hrm_webapp` | **8000** | [http://hrm.local:8000/metrics](http://hrm.local:8000/metrics) | [http://192.168.1.45:8000/metrics](http://192.168.1.45:8000/metrics) | Công khai cho Scraper |
-| **pgAdmin 4 (Qua Nginx)** | `hrm_nginx` | **8000** | [http://hrm.local:8000/pgadmin/](http://hrm.local:8000/pgadmin/) | [http://192.168.1.45:8000/pgadmin/](http://192.168.1.45:8000/pgadmin/) | **Email:** `admin@hrm.com`<br>**Pass:** `Admin@HRM2026!` |
-| **pgAdmin 4 (Trực tiếp)** | `hrm_pgadmin` | **5051** | [http://localhost:5051](http://localhost:5051) | [http://192.168.1.45:5051](http://192.168.1.45:5051) | **Email:** `admin@hrm.com`<br>**Pass:** `Admin@HRM2026!` |
-| **Prometheus Server** | `hrm_prometheus` | **9091** | [http://localhost:9091](http://localhost:9091) | [http://192.168.1.45:9091](http://192.168.1.45:9091) | Không yêu cầu |
-| **Grafana Dashboard** | `hrm_grafana` | **3001** | [http://localhost:3001](http://localhost:3001) | [http://192.168.1.45:3001](http://192.168.1.45:3001) | **User:** `admin`<br>**Pass:** `Admin@Grafana2026!` |
-| **cAdvisor** | `hrm_cadvisor` | **8085** | [http://localhost:8085](http://localhost:8085) | [http://192.168.1.45:8085](http://192.168.1.45:8085) | Không yêu cầu |
-| **Loki Log Engine** | `hrm_loki` | **3100** | [http://localhost:3100](http://localhost:3100) | [http://192.168.1.45:3100](http://192.168.1.45:3100) | REST API |
+| **HRM Web App (Qua Nginx)** | `hrm_nginx` | **8000** | [http://localhost:8000](http://localhost:8000) hoặc [http://127.0.0.1:8000](http://127.0.0.1:8000) | [http://172.172.6.227:8000](http://172.172.6.227:8000) | Không cần login (truy cập trực tiếp) |
+| **HRM Web App (Gốc)** | `hrm_webapp` | **3002** | [http://localhost:3002](http://localhost:3002) | [http://172.172.6.227:3002](http://172.172.6.227:3002) | Gốc Node.js nội bộ |
+| **Prometheus Metrics** | `hrm_webapp` | **8000** | [http://localhost:8000/metrics](http://localhost:8000/metrics) | [http://172.172.6.227:8000/metrics](http://172.172.6.227:8000/metrics) | Công khai cho Scraper |
+| **pgAdmin 4 (Qua Nginx)** | `hrm_nginx` | **8000** | [http://localhost:8000/pgadmin/](http://localhost:8000/pgadmin/) | [http://172.172.6.227:8000/pgadmin/](http://172.172.6.227:8000/pgadmin/) | **Email:** `admin@hrm.com`<br>**Pass:** `Admin@HRM2026!` |
+| **pgAdmin 4 (Trực tiếp)** | `hrm_pgadmin` | **5051** | [http://localhost:5051](http://localhost:5051) | [http://172.172.6.227:5051](http://172.172.6.227:5051) | **Email:** `admin@hrm.com`<br>**Pass:** `Admin@HRM2026!` |
+| **Prometheus Server** | `hrm_prometheus` | **9091** | [http://localhost:9091](http://localhost:9091) | [http://172.172.6.227:9091](http://172.172.6.227:9091) | Không yêu cầu |
+| **Grafana Dashboard** | `hrm_grafana` | **3001** | [http://localhost:3001](http://localhost:3001) | [http://172.172.6.227:3001](http://172.172.6.227:3001) | **User:** `admin`<br>**Pass:** `Admin@Grafana2026!` |
+| **cAdvisor** | `hrm_cadvisor` | **8085** | [http://localhost:8085](http://localhost:8085) | [http://172.172.6.227:8085](http://172.172.6.227:8085) | Không yêu cầu |
+| **Loki Log Engine** | `hrm_loki` | **3100** | [http://localhost:3100](http://localhost:3100) | [http://172.172.6.227:3100](http://172.172.6.227:3100) | REST API |
 | **PostgreSQL Database** | `hrm_postgres_db` | **5432 (Nội bộ)** | Kết nối nội bộ qua `backend_net` | Chỉ mở trong `backend_net` | **DB:** `hrm_db`<br>**User:** `hrm_user`<br>**Pass:** `hrm_secure_password_2026` |
 
 ---
 
 ## 6. HƯỚNG DẪN SỬ DỤNG PGADMIN 4 KẾT NỐI DATABASE
 
-1. Mở trình duyệt và truy cập: [http://192.168.1.45:8000/pgadmin/](http://192.168.1.45:8000/pgadmin/) (hoặc [http://192.168.1.45:5051](http://192.168.1.45:5051)).
+1. Mở trình duyệt và truy cập: [http://172.172.6.227:8000/pgadmin/](http://172.172.6.227:8000/pgadmin/) (hoặc [http://172.172.6.227:5051](http://172.172.6.227:5051)).
 2. Đăng nhập với tài khoản quản trị pgAdmin:
    - **Email:** `admin@hrm.com`
    - **Password:** `Admin@HRM2026!`
@@ -180,7 +180,7 @@ docker compose down
 
 ## 7. TRUY VẤN MẪU GIÁM SÁT METRICS (PROMQL)
 
-Truy cập Prometheus tại [http://192.168.1.45:9091](http://192.168.1.45:9091) hoặc Grafana tại [http://192.168.1.45:3001](http://192.168.1.45:3001):
+Truy cập Prometheus tại [http://172.172.6.227:9091](http://172.172.6.227:9091) hoặc Grafana tại [http://172.172.6.227:3001](http://172.172.6.227:3001):
 
 - **Tổng số request theo route & status:**
   ```promql
@@ -207,7 +207,7 @@ Truy cập Prometheus tại [http://192.168.1.45:9091](http://192.168.1.45:9091)
 
 ## 8. TRUY VẤN MẪU QUẢN LÝ LOG (LOGQL) CHO LOKI
 
-Truy cập Grafana [http://192.168.1.45:3001](http://192.168.1.45:3001) -> Vào mục **Explore** -> Chọn nguồn **Loki**:
+Truy cập Grafana [http://172.172.6.227:3001](http://172.172.6.227:3001) -> Vào mục **Explore** -> Chọn nguồn **Loki**:
 
 - **Xem log Web App:** `{container="hrm_webapp"}`
 - **Xem log Nginx:** `{container="hrm_nginx"}`
@@ -226,7 +226,7 @@ docker exec -it hrm_webapp whoami
 
 ### 9.2. Nghiệm thu Nginx Security Hardening Headers (Tiêu chí 3)
 ```bash
-curl -I http://192.168.1.45:8000
+curl -I http://172.172.6.227:8000
 # Kết quả: Server: nginx (đã ẩn version), X-Frame-Options: SAMEORIGIN, X-Content-Type-Options: nosniff, X-XSS-Protection: 1; mode=block
 ```
 
@@ -245,11 +245,11 @@ Bảng tổng hợp giúp báo cáo viên / thí sinh kiểm tra và trình bày
 
 | Tiêu Chí | Yêu Cầu Chấm Điểm | Trạng Thái | Thao Tác / Lệnh Demo Nhanh | Kết Quả Thực Tế |
 |:---|:---|:---:|:---|:---|
-| **TC 1: Web & DB** | Web App hoàn chỉnh, CRUD, kết nối DB PostgreSQL, quản trị qua pgAdmin 4. | **ĐẠT (100%)** | Mở trình duyệt: [http://192.168.1.45:8000](http://192.168.1.45:8000)<br>pgAdmin 4: [http://192.168.1.45:8000/pgadmin/](http://192.168.1.45:8000/pgadmin/) | Dữ liệu phong phú: 15 nhân viên, 6 phòng ban, 11 lượt chấm công. Thực hiện CRUD và check-in/check-out tức thì. |
+| **TC 1: Web & DB** | Web App hoàn chỉnh, CRUD, kết nối DB PostgreSQL, quản trị qua pgAdmin 4. | **ĐẠT (100%)** | Mở trình duyệt: [http://172.172.6.227:8000](http://172.172.6.227:8000)<br>pgAdmin 4: [http://172.172.6.227:8000/pgadmin/](http://172.172.6.227:8000/pgadmin/) | Dữ liệu phong phú: 15 nhân viên, 6 phòng ban, 11 lượt chấm công. Thực hiện CRUD và check-in/check-out tức thì. |
 | **TC 2: Docker Hardening** | Multi-stage build, Alpine Linux, tài khoản non-root. | **ĐẠT (100%)** | `docker exec -it hrm_webapp whoami` | Trả về `node` (UID 1000, ngăn chặn privilege escalation). |
-| **TC 3: Reverse Proxy** | Nginx làm cổng vào duy nhất, ẩn server version, kèm security headers. | **ĐẠT (100%)** | `curl -I http://192.168.1.45:8000` | `Server: nginx` (ẩn ver), `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`. |
-| **TC 4: Metrics Monitoring** | Xuất Prometheus metrics, scrape định kỳ app & container. | **ĐẠT (100%)** | `curl -s http://192.168.1.45:8000/metrics` hoặc vào [http://192.168.1.45:9091/targets](http://192.168.1.45:9091/targets) | Cả 3 target (webapp, cadvisor, prometheus) đều `UP 100%`. Có `hrm_employees_total 15`, `hrm_attendance_today_total 11`. |
-| **TC 5: Grafana Dashboard** | Tự động provisioning datasources và Dashboard trực quan. | **ĐẠT (100%)** | Đăng nhập Grafana [http://192.168.1.45:3001](http://192.168.1.45:3001) (`admin` / `Admin@Grafana2026!`) | Dashboard "HRM - Đề 10" sẵn sàng: KPI nhân sự, biểu đồ req/s, P95 latency, CPU/RAM container và logs container. |
+| **TC 3: Reverse Proxy** | Nginx làm cổng vào duy nhất, ẩn server version, kèm security headers. | **ĐẠT (100%)** | `curl -I http://172.172.6.227:8000` | `Server: nginx` (ẩn ver), `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`. |
+| **TC 4: Metrics Monitoring** | Xuất Prometheus metrics, scrape định kỳ app & container. | **ĐẠT (100%)** | `curl -s http://172.172.6.227:8000/metrics` hoặc vào [http://172.172.6.227:9091/targets](http://172.172.6.227:9091/targets) | Cả 3 target (webapp, cadvisor, prometheus) đều `UP 100%`. Có `hrm_employees_total 15`, `hrm_attendance_today_total 11`. |
+| **TC 5: Grafana Dashboard** | Tự động provisioning datasources và Dashboard trực quan. | **ĐẠT (100%)** | Đăng nhập Grafana [http://172.172.6.227:3001](http://172.172.6.227:3001) (`admin` / `Admin@Grafana2026!`) | Dashboard "HRM - Đề 10" sẵn sàng: KPI nhân sự, biểu đồ req/s, P95 latency, CPU/RAM container và logs container. |
 | **TC 6: Log tập trung** | Promtail gom logs Docker socket đẩy Loki, truy vấn LogQL. | **ĐẠT (100%)** | Vào Grafana -> **Explore** -> Chọn nguồn **Loki** -> Query `{container="hrm_webapp"}` | Stream log real-time xuất hiện tức thì, truy vấn linh hoạt. |
 | **TC 7: Network Isolation** | Tách mạng `frontend_net` & `backend_net`. DB cô lập hoàn toàn. | **ĐẠT (100%)** | `docker exec -it hrm_nginx ping -c 2 postgres_db` | Bị chặn hoàn toàn (Bad address / Unreachable), Nginx và Internet không thể chạm tới PostgreSQL. |
 

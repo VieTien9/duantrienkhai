@@ -393,10 +393,10 @@
   "schemaVersion": 39,
   "tags": ["hrm", "devops", "monitoring"],
   "templating": { "list": [] },
-  "time": { "from": "now-2d", "to": "now+1d" },
+  "time": { "from": "now-15m", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
   "title": "Hệ Thống Quản Lý Nhân Sự (HRM) - Đề 10",
   "uid": "hrm-system-overview",
-  "version": 2
+  "version": 3
 }
